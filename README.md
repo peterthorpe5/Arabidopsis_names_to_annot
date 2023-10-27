@@ -4,6 +4,7 @@ DE names to gene_ID plus full annotation
 Given a differential expression output, the Arabisopsis names e.g. AT1G09665
 Are, well, not enough to form any biological meaning. 
 
+```
 ├── LICENSE
 ├── README.md
 ├── converts_names.py
@@ -14,7 +15,7 @@ Are, well, not enough to form any biological meaning.
     ├── gene_description_20131231.txt.gz  (info on what the genes do)
     ├── headers.gz  (harvested from the predicted cds file)
     └── nlrs.txt  (from A Species-Wide Inventory of NLR Genes and Alleles in Arabidopsis thaliana )
-
+```
 
 The script will currently walk through the current directory and all sub directories 
 and look for files ending with" x.endswith("subset") or x.endswith("FDR_0.001") or x.endswith("DE_results"):
