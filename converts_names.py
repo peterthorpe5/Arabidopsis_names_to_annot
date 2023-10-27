@@ -185,52 +185,62 @@ def parse_file(infile, outfile, trans_to_gene,
     f_in = open(infile, "r")
     f_out = open(outfile, "w")
 
+    infile = os.path.basename(infile)
+    header_out = 0
+
+
     for line in f_in:
         if test_line(line):
             gene_custom_class = "other"
             nbl_type = ""
-            if line.startswith("sampleA"): 
-                f_out.write("\t" + "gene_id" + "\t" + line)
-                continue
+            line = line.rstrip()
+            #if line.startswith("sampleA"): 
+            #    if "GLM.edgeR.DE" in infile: pass
+            #    if "DE_results" in infile: pass
+            #    f_out.write("\t" + "gene_id" + "\t" + line)
+            #    continue
             data = line.split("\t")
             subject = data[0]
-            if "transcript" in infile:
-                gene_id = trans_to_gene_id[subject]
-                func = tran_to_func[subject]
-                out_data = "%s\t%s %s " % (subject, gene_id, func)
-                line = line.replace(subject, out_data)
-                f_out.write(line)
+            # the next two if are for trinity DE output. 
+            # removed
+            #if "transcript" in infile:
+            #    if "GLM.edgeR.DE" in infile: pass
+            #    if "DE_results" in infile: pass
+            #    gene_id = trans_to_gene_id[subject]
+            #    func = tran_to_func[subject]
+            #    out_data = "%s\t%s %s " % (subject, gene_id, func)
+            #    line = line.replace(subject, out_data)
+            #    f_out.write(line)
                 
-            if "gene" in infile:
-                gene_id = gene_to_gene_id[subject]
-                func = gene_to_func[subject]
-                out_data = "%s %s %s " % (subject, gene_id, func)
-                line = line.replace(subject, out_data)
-                f_out.write(line)
-            if line.startswith("Row.names"):
-                line = line.replace("Row.names", "gene\tgeneID\tgene_class\tR_Gene")
-                f_out.write(line.rstrip() + "\t" + "annot" + "\t" + 
-                            "full_annot" + "\t" + "GO_terms" +"\n")
-                continue
+            #if "gene" in infile:
+            #    if "GLM.edgeR.DE" in infile: pass
+            #    if "DE_results" in infile: pass
+            #    gene_id = gene_to_gene_id[subject]
+            #    func = gene_to_func[subject]
+            #    out_data = "%s %s %s " % (subject, gene_id, func)
+            #    line = line.replace(subject, out_data)
+            #    f_out.write(line)
 
-            if line.startswith("\t"):
-                line = line.replace("Row.names", "gene\tgeneID\tgene_class\tR_Gene")
-                f_out.write(line.rstrip() + "\t" + "annot" + "\t" + 
-                            "full_annot" + "\t" + "GO_terms" +"\n")
+            # write the header for the DE format
+            if line.strip().startswith("Row.names"):
+                if header_out < 1:
+                    line = line.replace("Row.names", "gene\tgeneID\tgene_class\tR_Gene")
+                    header = line.rstrip() + "\t" + "annot" + "\t" + "full_annot" + "\t" + "GO_terms" +"\n"
+                    f_out.write(header)
+                    header_out = header_out + 1
                 continue
-
             
-            if "GLM.edgeR.DE" in infile:
+            if "GLM.edgeR.DE" in infile or  "DE_results" in infile:
                 if not subject.startswith("A"):
                     subject = data[1]
-
                 gene_id = trans_to_gene_id[subject]
                 func = tran_to_func[subject]
                 func = func.rstrip("\n")
                 full_funk = transc_to_function[subject]
+                full_funk = full_funk.rstrip()
                 go = transc_to_go[subject]
 
-                temp_line = (line + "\t" + gene_custom_class + func + 
+                temp_line = (line.rstrip() + "\t" + gene_custom_class + func + 
                             "\t" + full_funk.strip() + "\t" +
                             go + "\n")
                 temp_line = temp_line.lower()
@@ -245,9 +255,11 @@ def parse_file(infile, outfile, trans_to_gene,
                         gene_custom_class = "defence"
                 if gene_to_NLR[subject]:
                     nbl_type = gene_to_NLR[subject]
-                out_data = "%s\t%s\t%s\t%s" % (subject, gene_id,  gene_custom_class, nbl_type)
+                out_data = "%s\t%s\t%s\t%s" % (subject, gene_id.rstrip(),  
+                                               gene_custom_class.rstrip(), 
+                                               nbl_type.rstrip())
                 line = line.replace(subject, out_data).rstrip()
-                f_out.write(line + "\t" + func + 
+                f_out.write(line.rstrip() + "\t" + func.rstrip() + 
                             "\t" + full_funk.strip() + "\t" +
                             go + "\n")
     f_in.close()
@@ -263,12 +275,10 @@ if __name__ == '__main__':
     gene_to_function, gene_to_des, gene_to_type, \
         transc_to_function, transc_to_type, \
             transc_to_des = parse_gene_des()
-    
     transc_to_go = parse_go()
 
     # parses the file: contain R genes from A Species-Wide Inventory of NLR Genes and Alleles in Arabidopsis thaliana (2017)
     gene_to_NLR = NLR()
-
     flowering_genes = parse_flowering_gene()
 
     # call the function to get a list of results wanted
@@ -278,7 +288,7 @@ if __name__ == '__main__':
         for x in files:
     
             if x.endswith(".pdf"): continue
-            if x.endswith("_RENAMED"): continue
+            if x.endswith("RENAMED"): continue
             if x.endswith("subset") or x.endswith("FDR_0.001") or x.endswith("DE_results"):
                 if x.startswith("."): continue
                 wanted_file = (os.path.join(dirpath, x))
