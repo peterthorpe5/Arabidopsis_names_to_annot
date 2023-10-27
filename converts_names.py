@@ -213,6 +213,12 @@ def parse_file(infile, outfile, trans_to_gene,
                             "full_annot" + "\t" + "GO_terms" +"\n")
                 continue
 
+            if line.startswith("\t"):
+                line = line.replace("Row.names", "gene\tgeneID\tgene_class\tR_Gene")
+                f_out.write(line.rstrip() + "\t" + "annot" + "\t" + 
+                            "full_annot" + "\t" + "GO_terms" +"\n")
+                continue
+
             
             if "GLM.edgeR.DE" in infile:
                 if not subject.startswith("A"):
