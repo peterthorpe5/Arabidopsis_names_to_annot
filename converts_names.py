@@ -71,6 +71,7 @@ def ada6(infile, text_info):
             transcript = data[0].strip()
             gene = transcript.split(".")[0].rstrip()
             DE_acd6[gene.upper()] = text_info
+            DE_acd6[transcript.upper()] = text_info
     return DE_acd6
 
 
@@ -288,18 +289,25 @@ def parse_file(infile, outfile, trans_to_gene,
                     acd6 = adc6_up[subject]
                 if col0_up[subject]:
                     acd6 = col0_up[subject]
+                if acd6.startswith("0.") or acd6.startswith("."):
+                    acd6 = ""
 
                 if transcript != "":
-                    if adc6_up[transcript]:
-                        acd6_trans = adc6_up[transcript]
-                    if col0_up[transcript]:
-                        acd6_trans = col0_up[transcript]
+                    if adc6_RTD_up[transcript]:
+                        acd6_trans = adc6_RTD_up[transcript]
+                    if col0_RTD_up[transcript]:
+                        acd6_trans = col0_RTD_up[transcript]
+                    if acd6_trans.startswith("0.") or acd6_trans.startswith("."):
+                        acd6_trans = ""
+                    if not acd6_trans.startswith("a") or acd6_trans.startswith("C"):
+                        acd6_trans = ""    
                     acd6 = acd6 + "\t" + acd6_trans
+
 
                 out_data = "%s\t%s\t%s\t%s\t%s" % (subject, gene_id.rstrip(),  
                                                    gene_custom_class.rstrip(), 
                                                    nbl_type.rstrip(), 
-                                                   acd6.rstrip())
+                                                   acd6)
                 if transcript != "":
                     out_data = transcript + "\t" + out_data
                 line = line.replace(subject, out_data).rstrip()
@@ -340,10 +348,9 @@ if __name__ == '__main__':
     col0_RTD_up = {}
 
     adc6_RTD_up = ada6("At_adc6_atRTD3.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.acd6-UP.subset", 
-                   "adc6_up_vs_Col0LFC2_FDR0.001")
+                   "adc6_up_vs_Col0_L2_1e-3")
     col0_RTD_up = ada6("At_adc6_atRTD3.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.col0-UP.subset", 
-                   "Col0_up_vs_acd6_LFC2_FDR0.001")
-
+                   "Col0_up_vs_acd6_L2_1e-3")
     # call the function to get a list of results wanted
     directory = os.getcwd()
     # get all folder names os.walk(directory)
