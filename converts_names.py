@@ -49,6 +49,7 @@ def NLR():
                              "nlrs.txt"), "r")
     for line in f_in:
         if test_line(line):
+            if line.startswith("sampleA"): continue
             data = line.split("\t")
             transcript = data[0].strip()
             gene = transcript.split(".")[0].rstrip()
@@ -56,6 +57,22 @@ def NLR():
             gene_to_NLR[gene.upper()] = NBR_type
     return gene_to_NLR
     
+
+def ada6(infile, text_info):
+    """first coloumn is the gene name
+    """
+    DE_acd6 = defaultdict(str)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    f_in = open(os.path.join(script_dir, "data", 
+                             infile), "r")
+    for line in f_in:
+        if test_line(line):
+            data = line.split("\t")
+            transcript = data[0].strip()
+            gene = transcript.split(".")[0].rstrip()
+            DE_acd6[gene.upper()] = text_info
+    return DE_acd6
+
 
 def parse_go():
     """we need to convert the gene id to  go terms	
@@ -179,7 +196,8 @@ def parse_file(infile, outfile, trans_to_gene,
                gene_to_gene_id, gene_id_to_func, 
                transc_to_function, transc_to_go, 
                flowering_genes, pathogen_terms,
-               hormone_terms, gene_to_NLR):
+               hormone_terms, gene_to_NLR,
+               adc6_up, col0_up):
     """ function to parse the input files and return the info
     for the given gene in coloumn 1"""
     f_in = open(infile, "r")
@@ -193,7 +211,9 @@ def parse_file(infile, outfile, trans_to_gene,
         if test_line(line):
             gene_custom_class = "other"
             nbl_type = ""
+            transcript = ""
             line = line.rstrip()
+            acd6 = ""
             #if line.startswith("sampleA"): 
             #    if "GLM.edgeR.DE" in infile: pass
             #    if "DE_results" in infile: pass
@@ -201,6 +221,9 @@ def parse_file(infile, outfile, trans_to_gene,
             #    continue
             data = line.split("\t")
             subject = data[0]
+            if "." in subject:
+                transcript = subject
+                subject = subject.split(".")[0]
             # the next two if are for trinity DE output. 
             # removed
             #if "transcript" in infile:
@@ -224,7 +247,10 @@ def parse_file(infile, outfile, trans_to_gene,
             # write the header for the DE format
             if line.strip().startswith("Row.names"):
                 if header_out < 1:
-                    line = line.replace("Row.names", "gene\tgeneID\tgene_class\tR_Gene")
+                    if transcript != "":
+                        line = line.replace("Row.names", "transcript\tgene\tgeneID\tgene_class\tR_Gene\tacd6_mutants")
+                    else:
+                        line = line.replace("Row.names", "gene\tgeneID\tgene_class\tR_Gene\tacd6_mutants")
                     header = line.rstrip() + "\t" + "annot" + "\t" + "full_annot" + "\t" + "GO_terms" +"\n"
                     f_out.write(header)
                     header_out = header_out + 1
@@ -255,9 +281,18 @@ def parse_file(infile, outfile, trans_to_gene,
                         gene_custom_class = "defence"
                 if gene_to_NLR[subject]:
                     nbl_type = gene_to_NLR[subject]
-                out_data = "%s\t%s\t%s\t%s" % (subject, gene_id.rstrip(),  
-                                               gene_custom_class.rstrip(), 
-                                               nbl_type.rstrip())
+                    
+                if adc6_up[subject]:
+                    acd6 = adc6_up[subject]
+                if col0_up[subject]:
+                    acd6 = col0_up[subject]
+
+                out_data = "%s\t%s\t%s\t%s\t%s" % (subject, gene_id.rstrip(),  
+                                                   gene_custom_class.rstrip(), 
+                                                   nbl_type.rstrip(), 
+                                                   acd6.rstrip())
+                if transcript != "":
+                    out_data = transcript + "\t" + out_data
                 line = line.replace(subject, out_data).rstrip()
                 f_out.write(line.rstrip() + "\t" + func.rstrip() + 
                             "\t" + full_funk.strip() + "\t" +
@@ -280,6 +315,16 @@ if __name__ == '__main__':
     # parses the file: contain R genes from A Species-Wide Inventory of NLR Genes and Alleles in Arabidopsis thaliana (2017)
     gene_to_NLR = NLR()
     flowering_genes = parse_flowering_gene()
+
+    # get the gene up in mutant adc6 and col0
+    # Initialize dictionaries for adc6_up and col0_up
+    adc6_up = {}
+    col0_up = {}
+
+    adc6_up = ada6("At_adc6_genes.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.acd6-UP.subset", 
+                   "adc6_up_vs_Col0LFC2_FDR0.001")
+    col0_up = ada6("At_adc6_genes.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.col0-UP.subset", 
+                   "Col0_up_vs_acd6_LFC2_FDR0.001")
 
     # call the function to get a list of results wanted
     directory = os.getcwd()
@@ -305,4 +350,5 @@ if __name__ == '__main__':
                            gene_to_gene_id, gene_id_to_func,
                            transc_to_function, transc_to_go,
                            flowering_genes, pathogen_terms,
-                           hormone_terms, gene_to_NLR)
+                           hormone_terms, gene_to_NLR,
+                           adc6_up, col0_up)
