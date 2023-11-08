@@ -197,7 +197,8 @@ def parse_file(infile, outfile, trans_to_gene,
                transc_to_function, transc_to_go, 
                flowering_genes, pathogen_terms,
                hormone_terms, gene_to_NLR,
-               adc6_up, col0_up):
+               adc6_up, col0_up, adc6_RTD_up,
+               col0_RTD_up):
     """ function to parse the input files and return the info
     for the given gene in coloumn 1"""
     f_in = open(infile, "r")
@@ -214,6 +215,7 @@ def parse_file(infile, outfile, trans_to_gene,
             transcript = ""
             line = line.rstrip()
             acd6 = ""
+            acd6_trans = ""
             #if line.startswith("sampleA"): 
             #    if "GLM.edgeR.DE" in infile: pass
             #    if "DE_results" in infile: pass
@@ -248,7 +250,7 @@ def parse_file(infile, outfile, trans_to_gene,
             if line.strip().startswith("Row.names"):
                 if header_out < 1:
                     if transcript != "":
-                        line = line.replace("Row.names", "transcript\tgene\tgeneID\tgene_class\tR_Gene\tacd6_mutants")
+                        line = line.replace("Row.names", "transcript\tgene\tgeneID\tgene_class\tR_Gene\tacd6_mutants\tacd6_RTD")
                     else:
                         line = line.replace("Row.names", "gene\tgeneID\tgene_class\tR_Gene\tacd6_mutants")
                     header = line.rstrip() + "\t" + "annot" + "\t" + "full_annot" + "\t" + "GO_terms" +"\n"
@@ -286,6 +288,13 @@ def parse_file(infile, outfile, trans_to_gene,
                     acd6 = adc6_up[subject]
                 if col0_up[subject]:
                     acd6 = col0_up[subject]
+
+                if transcript != "":
+                    if adc6_up[transcript]:
+                        acd6_trans = adc6_up[transcript]
+                    if col0_up[transcript]:
+                        acd6_trans = col0_up[transcript]
+                    acd6 = acd6 + "\t" + acd6_trans
 
                 out_data = "%s\t%s\t%s\t%s\t%s" % (subject, gene_id.rstrip(),  
                                                    gene_custom_class.rstrip(), 
@@ -325,6 +334,15 @@ if __name__ == '__main__':
                    "adc6_up_vs_Col0LFC2_FDR0.001")
     col0_up = ada6("At_adc6_genes.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.col0-UP.subset", 
                    "Col0_up_vs_acd6_LFC2_FDR0.001")
+    
+    # Initialize dictionaries for adc6_up and col0_up at_RTD3_data
+    adc6_RTD_up = {}
+    col0_RTD_up = {}
+
+    adc6_RTD_up = ada6("At_adc6_atRTD3.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.acd6-UP.subset", 
+                   "adc6_up_vs_Col0LFC2_FDR0.001")
+    col0_RTD_up = ada6("At_adc6_atRTD3.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.col0-UP.subset", 
+                   "Col0_up_vs_acd6_LFC2_FDR0.001")
 
     # call the function to get a list of results wanted
     directory = os.getcwd()
@@ -351,4 +369,5 @@ if __name__ == '__main__':
                            transc_to_function, transc_to_go,
                            flowering_genes, pathogen_terms,
                            hormone_terms, gene_to_NLR,
-                           adc6_up, col0_up)
+                           adc6_up, col0_up, adc6_RTD_up,
+                           col0_RTD_up)
