@@ -319,6 +319,8 @@ def parse_file(infile, outfile, trans_to_gene,
     
 
 if __name__ == '__main__':
+    # to get where the data folder is ...
+    script_dir = os.path.dirname(os.path.abspath(__file__))
     # parses headers which is from the Araport11_pep_20220914
     trans_to_gene, gene_to_trans, tran_to_func, \
            gene_to_func, trans_to_gene_id, \
@@ -337,19 +339,23 @@ if __name__ == '__main__':
     # Initialize dictionaries for adc6_up and col0_up
     adc6_up = {}
     col0_up = {}
-
-    adc6_up = ada6("At_adc6_genes.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.acd6-UP.subset", 
+    
+    adc6_up = ada6(os.path.join(script_dir, "data", 
+                                "At_adc6_genes.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.acd6-UP.subset"), 
                    "adc6_up_vs_Col0LFC2_FDR0.001")
-    col0_up = ada6("At_adc6_genes.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.col0-UP.subset", 
+    col0_up = ada6(os.path.join(script_dir, "data",
+                                "At_adc6_genes.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.col0-UP.subset"), 
                    "Col0_up_vs_acd6_LFC2_FDR0.001")
     
     # Initialize dictionaries for adc6_up and col0_up at_RTD3_data
     adc6_RTD_up = {}
     col0_RTD_up = {}
 
-    adc6_RTD_up = ada6("At_adc6_atRTD3.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.acd6-UP.subset", 
+    adc6_RTD_up = ada6(os.path.join(script_dir, "data",
+                                    "At_adc6_atRTD3.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.acd6-UP.subset"), 
                    "adc6_up_vs_Col0_L2_1e-3")
-    col0_RTD_up = ada6("At_adc6_atRTD3.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.col0-UP.subset", 
+    col0_RTD_up = ada6(os.path.join(script_dir, "data",
+                                    "At_adc6_atRTD3.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.col0-UP.subset"), 
                    "Col0_up_vs_acd6_L2_1e-3")
     # call the function to get a list of results wanted
     directory = os.getcwd()
@@ -359,7 +365,7 @@ if __name__ == '__main__':
     
             if x.endswith(".pdf"): continue
             if x.endswith("RENAMED"): continue
-            if x.endswith("subset") or x.endswith("FDR_0.001") or x.endswith("DE_results"):
+            if x.endswith("subset") or x.endswith("FDR_0.001") or x.endswith("DE_results") or x.endswith("FDR_0.01") or x.endswith("FDR_0.05"):
                 if x.startswith("."): continue
                 wanted_file = (os.path.join(dirpath, x))
                 print("FILE = ", wanted_file)
