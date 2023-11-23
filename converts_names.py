@@ -291,12 +291,20 @@ def parse_file(infile, outfile, trans_to_gene,
                     acd6 = col0_up[subject]
                 if acd6.startswith("0.") or acd6.startswith("."):
                     acd6 = ""
-
+                # some mental if to get rid of some weirdness coming through. 
                 if transcript != "":
                     if adc6_RTD_up[transcript]:
                         acd6_trans = adc6_RTD_up[transcript]
+                        if not acd6_trans.startswith("a") or acd6_trans.startswith("C"):
+                            acd6_trans = "" 
+                        if acd6_trans.startswith("0.") or acd6_trans.startswith("."):
+                            acd6_trans = "" 
                     if col0_RTD_up[transcript]:
                         acd6_trans = col0_RTD_up[transcript]
+                        if not acd6_trans.startswith("a") or acd6_trans.startswith("C"):
+                            acd6_trans = "" 
+                        if acd6_trans.startswith("0.") or acd6_trans.startswith("."):
+                            acd6_trans = "" 
                     if acd6_trans.startswith("0.") or acd6_trans.startswith("."):
                         acd6_trans = ""
                     if not acd6_trans.startswith("a") or acd6_trans.startswith("C"):
