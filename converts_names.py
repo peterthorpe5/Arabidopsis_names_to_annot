@@ -56,7 +56,29 @@ def NLR():
             NBR_type = data[1].rstrip()
             gene_to_NLR[gene.upper()] = NBR_type
     return gene_to_NLR
-    
+
+
+def PTI():
+    """returns a dict [gene] PTI_gene_response_LFC 	
+    e.g.
+    AT1G51820	LRR-RLKs_down_PTI_LFC_-5.935654809
+    AT2G19190	LRR-RLKs_down_PTI_LFC_-5.404993937
+
+    """
+    gene_to_PTI = defaultdict(str)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    f_in = open(os.path.join(script_dir, "data", 
+                             "PTI.txt"), "r")
+    for line in f_in:
+        if test_line(line):
+            if line.startswith("sampleA"): continue
+            data = line.split("\t")
+            transcript = data[0].strip()
+            gene = transcript.split(".")[0].rstrip()
+            PTI_type = data[1].rstrip()
+            gene_to_PTI[gene.upper()] = PTI_type
+    return gene_to_PTI
+
 
 def ada6(infile, text_info):
     """first coloumn is the gene name
@@ -199,7 +221,7 @@ def parse_file(infile, outfile, trans_to_gene,
                flowering_genes, pathogen_terms,
                hormone_terms, gene_to_NLR,
                adc6_up, col0_up, adc6_RTD_up,
-               col0_RTD_up):
+               col0_RTD_up, gene_to_PTI):
     """ function to parse the input files and return the info
     for the given gene in coloumn 1"""
     f_in = open(infile, "r")
@@ -217,6 +239,7 @@ def parse_file(infile, outfile, trans_to_gene,
             line = line.rstrip()
             acd6 = ""
             acd6_trans = ""
+            PTI = ""
             #if line.startswith("sampleA"): 
             #    if "GLM.edgeR.DE" in infile: pass
             #    if "DE_results" in infile: pass
@@ -253,7 +276,7 @@ def parse_file(infile, outfile, trans_to_gene,
                     if transcript != "":
                         line = line.replace("Row.names", "transcript\tgene\tgeneID\tgene_class\tR_Gene\tacd6_mutants\tacd6_RTD")
                     else:
-                        line = line.replace("Row.names", "gene\tgeneID\tgene_class\tR_Gene\tacd6_mutants")
+                        line = line.replace("Row.names", "gene\tgeneID\tgene_class\tR_Gene\tPTI_type\tacd6_mutants")
                     header = line.rstrip() + "\t" + "annot" + "\t" + "full_annot" + "\t" + "GO_terms" +"\n"
                     f_out.write(header)
                     header_out = header_out + 1
@@ -284,6 +307,9 @@ def parse_file(infile, outfile, trans_to_gene,
                         gene_custom_class = "defence"
                 if gene_to_NLR[subject]:
                     nbl_type = gene_to_NLR[subject]
+                
+                if gene_to_PTI[subject]:
+                    PTI = gene_to_PTI[subject]
                     
                 if adc6_up[subject]:
                     acd6 = adc6_up[subject]
@@ -312,10 +338,10 @@ def parse_file(infile, outfile, trans_to_gene,
                     acd6 = acd6 + "\t" + acd6_trans
 
 
-                out_data = "%s\t%s\t%s\t%s\t%s" % (subject, gene_id.rstrip(),  
-                                                   gene_custom_class.rstrip(), 
-                                                   nbl_type.rstrip(), 
-                                                   acd6)
+                out_data = "%s\t%s\t%s\t%s\t%s\t%s" % (subject, gene_id.rstrip(),  
+                                                      gene_custom_class.rstrip(), 
+                                                      nbl_type.rstrip(), PTI.rstrip(), 
+                                                      acd6)
                 if transcript != "":
                     out_data = transcript + "\t" + out_data
                 line = line.replace(subject, out_data).rstrip()
@@ -342,6 +368,8 @@ if __name__ == '__main__':
     # parses the file: contain R genes from A Species-Wide Inventory of NLR Genes and Alleles in Arabidopsis thaliana (2017)
     gene_to_NLR = NLR()
     flowering_genes = parse_flowering_gene()
+
+    gene_to_PTI = PTI()
 
     # get the gene up in mutant adc6 and col0
     # Initialize dictionaries for adc6_up and col0_up
@@ -391,4 +419,4 @@ if __name__ == '__main__':
                            flowering_genes, pathogen_terms,
                            hormone_terms, gene_to_NLR,
                            adc6_up, col0_up, adc6_RTD_up,
-                           col0_RTD_up)
+                           col0_RTD_up, gene_to_PTI)
