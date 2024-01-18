@@ -1,0 +1,681 @@
+---
+title: "Arabidopsis mutants. DE and different temperature"
+author: "Peter Thorpe"
+date: "Feb 2023"
+output:
+  output: html_document
+---
+
+```{r include=FALSE}
+knitr::opts_chunk$set(comment = NA)
+error = TRUE
+
+```
+
+#0.1 QC! 
+
+Fastqc and mapping rates from salmon. 
+
+> grep -H "Mapping rate" ./*/logs/salmon_quant.log
+./alkbh10c_high_1/logs/salmon_quant.log:[2023-06-21 12:18:50.624] [jointLog] [info] Mapping rate = 81.3441%
+./alkbh10c_high_2/logs/salmon_quant.log:[2023-06-21 12:29:52.794] [jointLog] [info] Mapping rate = 81.21%
+./alkbh10c_high_3/logs/salmon_quant.log:[2023-06-21 12:40:25.720] [jointLog] [info] Mapping rate = 82.4102%
+./alkbh10c_high_4/logs/salmon_quant.log:[2023-06-21 12:20:23.695] [jointLog] [info] Mapping rate = 79.4832%
+./alkbh10c_low_1/logs/salmon_quant.log:[2023-06-21 12:30:45.608] [jointLog] [info] Mapping rate = 82.2018%
+./alkbh10c_low_2/logs/salmon_quant.log:[2023-06-21 12:39:02.082] [jointLog] [info] Mapping rate = 81.4972%
+./alkbh10c_low_3/logs/salmon_quant.log:[2023-06-21 12:37:33.099] [jointLog] [info] Mapping rate = 81.0836%
+./alkbh10c_low_4/logs/salmon_quant.log:[2023-06-21 12:27:51.346] [jointLog] [info] Mapping rate = 82.1305%
+./col0_high_1/logs/salmon_quant.log:[2023-06-21 12:19:29.778] [jointLog] [info] Mapping rate = 81.7532%
+./col0_high_2/logs/salmon_quant.log:[2023-06-21 12:20:17.771] [jointLog] [info] Mapping rate = 78.8256%
+./col0_high_3/logs/salmon_quant.log:[2023-06-21 12:28:06.663] [jointLog] [info] Mapping rate = 82.5022%
+./col0_high_4/logs/salmon_quant.log:[2023-06-21 12:28:48.323] [jointLog] [info] Mapping rate = 86.8413%
+./col0_low_1/logs/salmon_quant.log:[2023-06-21 12:41:00.979] [jointLog] [info] Mapping rate = 81.7925%
+./col0_low_2/logs/salmon_quant.log:[2023-06-21 12:30:43.600] [jointLog] [info] Mapping rate = 80.0413%
+./col0_low_3/logs/salmon_quant.log:[2023-06-21 12:38:10.956] [jointLog] [info] Mapping rate = 81.9983%
+./col0_low_4/logs/salmon_quant.log:[2023-06-21 12:42:08.778] [jointLog] [info] Mapping rate = 81.6418%
+./vir1_high_1/logs/salmon_quant.log:[2023-06-21 12:18:22.539] [jointLog] [info] Mapping rate = 81.9653%
+./vir1_high_2/logs/salmon_quant.log:[2023-06-21 12:19:09.333] [jointLog] [info] Mapping rate = 82.3585%
+./vir1_high_3/logs/salmon_quant.log:[2023-06-21 12:18:59.430] [jointLog] [info] Mapping rate = 80.3707%
+./vir1_high_4/logs/salmon_quant.log:[2023-06-21 12:41:22.480] [jointLog] [info] Mapping rate = 81.2688%
+./vir1_low_1/logs/salmon_quant.log:[2023-06-21 12:28:54.243] [jointLog] [info] Mapping rate = 84.2039%
+./vir1_low_2/logs/salmon_quant.log:[2023-06-21 12:39:01.772] [jointLog] [info] Mapping rate = 82.4165%
+./vir1_low_3/logs/salmon_quant.log:[2023-06-21 12:30:38.411] [jointLog] [info] Mapping rate = 83.0786%
+./vir1_low_4/logs/salmon_quant.log:[2023-06-21 12:18:38.025] [jointLog] [info] Mapping rate = 81.0428%
+
+```{r include=FALSE}
+# Create the data folder if it doesn't exist
+if (!dir.exists("data")) {
+  dir.create("data")
+}
+
+# Define the file path to the plots directory
+plots_dir <- "plots"
+
+# Create the plots folder if it doesn't exist
+if (!dir.exists(plots_dir)) {
+  dir.create(plots_dir)
+}
+
+# Define the file path to the results directory
+results_dir <- "results_vir"
+
+# Create the results folder if it doesn't exist
+if (!dir.exists(results_dir)) {
+  dir.create(results_dir)
+}
+
+```
+
+##load the libs needed 
+
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(DESeq2) # not used, yet(?)
+library(plotly)
+library(ggplot2)
+library(tidyverse)
+library(ggrepel)
+library(htmlwidgets)
+library(edgeR)
+library(tibble)
+library(data.table)
+
+
+```
+
+
+#0.2 load the data
+
+NOTE: replicate 2 removed for GFP_Striatum and KI_Striatum -  previously 
+shown not to worked. 
+
+counts were already generated using salmon and counts.matrix generated using trinity. 
+
+```{r}
+setwd("/Users/PThorpe001/Library/CloudStorage/OneDrive-UniversityofDundee/ggs_arabidopsis/demeth_mutants_DE/genes/")
+
+
+
+cts <- read.delim("data/At.gene.counts.matrix", 
+                  header=T, row.names=1)
+
+coldata = read.table("data/metadata_2.txt", header=T, com='', 
+                      sep="\t", check.names=F, row.names=1)
+
+
+```
+
+
+## have a quick look at the data:
+
+```{r}
+head(cts)
+
+```
+
+```{r}
+
+head(coldata)
+
+```
+
+
+convert to factors
+
+```{r}
+
+coldata <- coldata[,c("condition", "reps")]
+coldata$reps <- factor(coldata$reps)
+condition <- factor(coldata$condition)
+
+```
+
+check that the order of the table and the colomns in the counts.matrix march, if not, then fix:
+
+```{r}
+
+all(rownames(coldata) %in% colnames(cts))
+# TRUE
+
+rownames(coldata) <-  rownames(coldata)
+
+all(rownames(coldata) == colnames(cts))
+# FALSE
+
+cts <- cts[, rownames(coldata)]
+
+all(rownames(coldata) == colnames(cts))
+# TRUE
+cts <- cts[, rownames(coldata)]
+all(rownames(coldata) == colnames(cts))
+
+```
+
+
+
+set up the reps. 
+
+```{r}
+group=c('alkbh10c_high', 'alkbh10c_high', 'alkbh10c_high', 'alkbh10c_high', 'alkbh10c_low', 'alkbh10c_low', 'alkbh10c_low', 'alkbh10c_low', 'col0_high', 'col0_high', 'col0_high', 'col0_high', 'col0_low', 'col0_low', 'col0_low', 'col0_low', 'vir1_high', 'vir1_high', 'vir1_high', 'vir1_high', 'vir1_low', 'vir1_low', 'vir1_low', 'vir1_low')
+
+```
+
+
+# 0.3 R Packages now to start using edgeR to do some analysis: https://bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeR.pdf
+
+
+```{r}
+
+y <- DGEList(counts=cts, group=group)
+condition<-coldata$condition # just so I dont have to keep using dollars :)
+
+```
+
+
+filter low expressing genes. Stats perfomred in a larger number, when lots are zero to low expressing negatively impacts on the data. 5,640 genes dropped from the analysis. 
+
+```{r}
+
+keep <- filterByExpr(y)
+table(keep)
+
+```
+
+calculate nomrlaisation factors and normalise the data for lib depth differences
+
+```{r}
+
+y <- y[keep, , keep.lib.sizes=FALSE]
+#The TMM normalization is applied to account for the compositional biases:
+y <- calcNormFactors(y)
+y$samples
+
+```
+
+
+following this https://support.bioconductor.org/p/56637/ with a problem with y, see the fix at the webpage. Reasign to d:
+
+```{r}
+
+d <- DGEList(counts=y,group=group)
+keep <- filterByExpr(d)
+table(keep)
+d <- d[keep, , keep.lib.sizes=FALSE]
+d <- calcNormFactors(d)
+
+# Create a color palette for the unique groups
+group_colors <- rainbow(length(unique(group)))
+
+plotMDS(d, cex = 0.5, col = group_colors)
+
+# Specify the file path for the output plot
+output_file <- "./plots/mds.png"
+
+# Save the plot to the specified file as a PNG image
+png(output_file, width = 800, height = 800)  # Adjust width and height as needed
+plotMDS(d, col = group_colors)
+dev.off()  # Close the graphics device
+
+
+```
+
+
+Before we fit GLMs, we need to define our design matrix based on the experimental design. 
+We want to test for differential expressions between our conditions within batches, i.e. adjusting for differences between batches. In statistical terms,
+this is an additive linear model. So the design matrix is created as:
+
+```{r}
+
+design <- model.matrix(~0 + condition)
+
+rownames(design) <- colnames(d)
+
+design
+
+```
+
+
+some QC on the dispersion
+
+```{r}
+design_i <- model.matrix(~0 + condition)
+d_i <- estimateDisp(d, design_i)
+fit_i <- glmQLFit(d_i, design_i)
+plotQLDisp(fit_i)
+d_i$common.dispersion
+
+# Specify the file path for the output plot
+output_file <- "./plots/dispersion.png"
+
+# Save the plot to the specified file as a PNG image
+png(output_file, width = 800, height = 800)  # Adjust width and height as needed
+plotMDS(d, col = group_colors)
+dev.off()  # Close the graphics device 
+
+```
+
+```{r}
+#sqrt(d_i$common.dispersion) ## this is the (common) BCV ## for example, a value (1.162545) is very high! 
+
+# biological coeff of var is massive if >1, normally, values of ~0.3 are good 
+# if high :  You might want to consider splitting the analysis into different models if possible.
+
+sqrt(d_i$common.dispersion)
+
+```
+
+dispersion of 0.1844764 is nice and low which is good. 
+
+```{r}
+
+
+# Calculate the principal components
+pca_result <- prcomp(t(cts))
+
+# Load the metadata from your file
+metadata <- read.table("data/metadata_2.txt", header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+
+# Combine the PCA data with the metadata
+pca_data_with_metadata <- cbind(data.frame(PC1 = pca_result$x[, 1], PC2 = pca_result$x[, 2]), metadata)
+
+# Calculate the percentage variance explained for all principal components
+pve <- data.frame(PC = 1:length(pca_result$sdev), 
+                  pve = pca_result$sdev^2 / sum(pca_result$sdev^2) * 100)
+
+
+# Create a PCA plot with percentage variance explained on axes, and color by 'condition'
+library(ggplot2)
+
+pca_plot <- ggplot(pca_data_with_metadata, aes(x = PC1, y = PC2, color = condition)) +
+  geom_point() +
+  labs(title = "PCA Plot", 
+       x = paste0("Principal Component 1 (", signif(pve$pve[1], 3), "%)"), 
+       y = paste0("Principal Component 2 (", signif(pve$pve[2], 3), "%)")) +
+  theme_minimal()
+
+# Print the PCA plot
+print(pca_plot)
+
+# Save the PCA plot to a PDF file
+ggsave("./plots/PCA_plot_with_metadata.pdf", pca_plot, width = 8, height = 6)
+
+# Include the saved PCA plot in your document
+# ![PCA Plot](./plots/PCA_plot_with_metadata.pdf)
+
+
+
+```
+
+googling these numers:  indicates the range of values that the data points have along these two principal components in your PCA analysis. These values are the result of the PCA transformation applied to your original data.
+
+Keep in mind that the values along the principal components are linear combinations of the original features (genes or variables), and their magnitudes and directions depend on the underlying data distribution and covariance structure. The PCA plot provides a visualization of how your data points are distributed in this transformed space, which can help you identify patterns and relationships in your data
+
+
+
+ANOTHER PCA
+```{r}
+
+# Log normalize the data
+log_counts <- log2(1 + cts)
+
+# Scale the log-transformed data
+scaled_data <- scale(log_counts)
+
+# Calculate the principal components
+pca_result <- prcomp(t(scaled_data))
+
+
+
+# Load the metadata from your file
+metadata <- read.table("data/metadata_3.txt", header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+
+# Combine the PCA data with the metadata
+pca_data_with_metadata <- cbind(data.frame(PC1 = pca_result$x[, 1], PC2 = pca_result$x[, 2]), metadata)
+
+# Calculate the percentage variance explained for all principal components
+pve <- data.frame(PC = 1:length(pca_result$sdev), 
+                  pve = pca_result$sdev^2 / sum(pca_result$sdev^2) * 100)
+
+# Create a PCA plot with percentage variance explained on axes, and color by 'condition'
+library(ggplot2)
+
+pca_plot <- ggplot(pca_data_with_metadata, aes(x = PC1, y = PC2, color = condition)) +
+  geom_point() +
+  labs(title = "PCA Plot", 
+       x = paste0("Principal Component 1 (", signif(pve$pve[1], 3), "%)"), 
+       y = paste0("Principal Component 2 (", signif(pve$pve[2], 3), "%)")) +
+  theme_minimal()
+
+# Print the PCA plot
+print(pca_plot)
+
+# Save the PCA plot to a PDF file
+ggsave("plots/PCA_plot_with_metadata2.pdf", pca_plot, width = 8, height = 6)
+
+# Include the saved PCA plot in your document
+# ![PCA Plot](./plots/PCA_plot_with_metadata.pdf)
+
+
+
+```
+
+# run the DE analysis:
+
+```{r}
+
+d <- estimateDisp(d,design)
+
+d$common.dispersion
+
+# this GLM is better for low numbers of reps.
+ fit <- glmQLFit(d, design)
+ 
+```
+
+
+
+ANOTHER PCA
+```{r}
+
+
+# Load the data
+cts <- read.table("data/At.gene.counts2.matrix", header = TRUE, row.names = 1, sep = "\t")
+
+# Log normalize the data
+log_counts <- log2(1 + cts)
+
+# Scale the log-transformed data
+scaled_data <- scale(log_counts)
+
+# Calculate the principal components
+pca_result <- prcomp(t(scaled_data))
+
+# Load the metadata from your file
+metadata <- read.table("data/metadata_4.txt", header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+
+# Combine the PCA data with the metadata
+pca_data_with_metadata <- cbind(data.frame(PC1 = pca_result$x[, 1], PC2 = pca_result$x[, 2]), metadata)
+
+# Calculate the percentage variance explained for all principal components
+pve <- data.frame(PC = 1:length(pca_result$sdev), 
+                  pve = pca_result$sdev^2 / sum(pca_result$sdev^2) * 100)
+
+# Create a PCA plot with percentage variance explained on axes, color by 'condition', and shape by 'temperature'
+library(ggplot2)
+
+pca_plot <- ggplot(pca_data_with_metadata, aes(x = PC1, y = PC2, color = condition, shape = temperature)) +
+  geom_point(size = 3) +
+  labs(title = "PCA Plot ", 
+       x = paste0("Principal Component 1 (", signif(pve$pve[1], 3), "%)"), 
+       y = paste0("Principal Component 2 (", signif(pve$pve[2], 3), "%)")) +
+  theme_minimal()
+
+# Print the PCA plot
+print(pca_plot)
+
+# Save the PCA plot to a PDF file
+ggsave("plots/PCA_plot_with_metadata2.pdf", pca_plot, width = 8, height = 6)
+
+# Include the saved PCA plot in your document
+# ![PCA Plot](./plots/PCA_plot_with_metadata2.pdf)
+
+```
+
+
+
+ANOTHER PCA
+```{r}
+
+
+# Load the data
+cts <- read.table("data/At.gene.counts2.matrix", header = TRUE, row.names = 1, sep = "\t")
+
+# Log normalize the data
+log_counts <- log2(1 + cts)
+
+# Scale the log-transformed data
+scaled_data <- scale(log_counts)
+
+# Calculate the principal components
+pca_result <- prcomp(t(scaled_data))
+
+# Load the metadata from your file
+metadata <- read.table("data/metadata_4.txt", header = TRUE, stringsAsFactors = FALSE, sep = "\t")
+
+# Combine the PCA data with the metadata
+pca_data_with_metadata <- cbind(data.frame(PC1 = pca_result$x[, 1], PC2 = pca_result$x[, 2]), metadata)
+
+# Calculate the percentage variance explained for all principal components
+pve <- data.frame(PC = 1:length(pca_result$sdev), 
+                  pve = pca_result$sdev^2 / sum(pca_result$sdev^2) * 100)
+
+# Create a PCA plot with percentage variance explained on axes, color by 'condition', and shape by 'temperature'
+library(ggplot2)
+
+pca_plot <- ggplot(pca_data_with_metadata, aes(x = PC1, y = PC2, color = condition, shape = temperature)) +
+  geom_point(size = 3) +
+  labs(title = "PCA Plot ", 
+       x = paste0("Principal Component 1 (", signif(pve$pve[1], 3), "%)"), 
+       y = paste0("Principal Component 2 (", signif(pve$pve[2], 3), "%)")) +
+  theme_minimal()
+
+# Print the PCA plot
+print(pca_plot)
+
+# Save the PCA plot to a PDF file
+ggsave("plots/PCA_plot_with_metadata2.svg", pca_plot, width = 8, height = 6)
+
+# Include the saved PCA plot in your document
+# ![PCA Plot](./plots/PCA_plot_with_metadata2.pdf)
+
+```
+
+
+## specific comparisons
+To do the specific comparisons: 
+
+
+
+
+
+```{r}
+
+# To get genes up in vir1_low .....
+
+# up vir vs average of all, then without the other mutant. 
+my.contrasts <- makeContrasts(vir1_vs_ALL = (conditionvir1_low + conditionvir1_high)/2 - (conditioncol0_high + conditioncol0_low)/2,
+                              vir1_low_vs_ALL = conditionvir1_low - (conditioncol0_high + conditioncol0_low + conditionalkbh10c_high + conditionalkbh10c_low + conditionvir1_high)/5, 
+                              vir1_low_vs_col_vir_high = conditionvir1_low - (conditioncol0_high + conditioncol0_low + conditionvir1_high)/3, levels=design)
+
+
+```
+
+get the pair wise comparisons. 
+
+# vir1_vs_col0
+```{r}
+
+# vir1_low_vs_ALL
+qlf <- glmQLFTest(fit, contrast=my.contrasts[,"vir1_vs_ALL"])
+
+tTags = topTags(qlf,n=NULL)
+
+result_table = tTags$table
+
+result_table = data.frame(sampleA="vir1", sampleB="col0", result_table)
+result_table = merge(result_table, cts,by="row.names", all.x=TRUE)
+result_table <- result_table[order(result_table$logFC),]
+
+
+
+
+write.table(result_table, file='results_vir/vir1_HL_vs_Col0_HL.GLM.edgeR.DE_results',
+            sep='	', quote=F, row.names=T, col.names = NA)
+
+```
+
+
+# vir1_low_vs_ALL
+```{r}
+
+# vir1_low_vs_ALL
+qlf <- glmQLFTest(fit, contrast=my.contrasts[,"vir1_low_vs_ALL"])
+
+tTags = topTags(qlf,n=NULL)
+
+result_table = tTags$table
+
+result_table = data.frame(sampleA="vir1_low", sampleB="AVR_ALL", result_table)
+result_table = merge(result_table, cts,by="row.names", all.x=TRUE)
+result_table <- result_table[order(result_table$logFC),]
+
+
+
+
+write.table(result_table, file='results_vir/vir1_low_vs_ALL.GLM.edgeR.DE_results',
+            sep='	', quote=F, row.names=T, col.names = NA)
+
+```
+
+
+
+# vir1_low_vs_col_vir_high
+```{r}
+
+# vir1_low_vs_ALL
+qlf <- glmQLFTest(fit, contrast=my.contrasts[,"vir1_low_vs_col_vir_high"])
+
+tTags = topTags(qlf,n=NULL)
+
+result_table = tTags$table
+
+result_table = data.frame(sampleA="vir1_low", sampleB="AVR_WO_10C", result_table)
+result_table = merge(result_table, cts,by="row.names", all.x=TRUE)
+result_table <- result_table[order(result_table$logFC),]
+
+
+
+
+write.table(result_table, file='results_vir/vir1_low_vs_col_vir_high.GLM.edgeR.DE_results',
+            sep='	', quote=F, row.names=T, col.names = NA)
+
+```
+
+
+
+
+
+```{r}
+Pthreshold <- 0.05
+logFC_threshold <- 1.6
+
+# make a new column if the gene is sig yes or no
+temp_data <- ''
+
+temp_data <- read.table('results_vir/vir1_low_vs_ALL.GLM.edgeR.DE_results', header=T, sep='	')
+
+temp_data$Significant<-ifelse(temp_data$PValue <=Pthreshold, 'Yes', 'No')
+
+temp_data <- as_tibble(temp_data)
+
+temp_data %>% 
+  rename(gene_id = Row.names)
+  
+names(temp_data)[names(temp_data) == 'Row.names'] <- 'gene_id'
+
+# assign ggplot to var called volc
+volc <- NA
+
+volc <- ggplot(data=temp_data, aes(logFC, -log10(PValue), label=gene_id)) +
+   geom_point(aes(col=Significant))  +
+  geom_text_repel(aes(label=ifelse(abs(logFC >= logFC_threshold) 
+                       & PValue < Pthreshold, as.character(gene_id), ''))) +
+  theme_grey() +
+  geom_vline(xintercept=c(logFC_threshold,-logFC_threshold),
+             linetype = 'dashed') +
+  geom_hline(yintercept = -log10(Pthreshold), linetype = 'dashed') +
+  scale_color_manual(values = c('black','red'))
+
+# can save voc as a standard image if required 
+# this is the interactive package
+ggplotly(volc)
+
+# save it to html
+library(htmlwidgets)
+
+g_plotly<-ggplotly(volc)
+saveWidget(g_plotly, 'plots/vir1_low_vs_ALL.GLM.edgeR.DE_results.html')
+
+
+
+df <- temp_data %>%
+  filter(Significant == 'Yes')
+
+print('number DE genes:')
+nrow(df)
+
+write.table(df, file='results_vir/vir1_low_vs_ALL.GLM.edgeR.LOGFC1.6_FDR0.05.txt',
+            sep='	', quote=F, row.names=T,col.names = NA)
+
+
+```
+
+
+
+
+```{r}
+Pthreshold <- 0.05
+logFC_threshold <- 1.6
+
+# make a new column if the gene is sig yes or no
+temp_data <- ''
+
+temp_data <- read.table('results_vir/vir1_low_vs_col_vir_high.GLM.edgeR.DE_results', header=T, sep='	')
+
+temp_data$Significant<-ifelse(temp_data$PValue <=Pthreshold, 'Yes', 'No')
+
+temp_data <- as_tibble(temp_data)
+
+temp_data %>% 
+  rename(gene_id = Row.names)
+  
+names(temp_data)[names(temp_data) == 'Row.names'] <- 'gene_id'
+
+# assign ggplot to var called volc
+volc <- NA
+
+volc <- ggplot(data=temp_data, aes(logFC, -log10(PValue), label=gene_id)) +
+   geom_point(aes(col=Significant))  +
+  geom_text_repel(aes(label=ifelse(abs(logFC >= logFC_threshold) 
+                       & PValue < Pthreshold, as.character(gene_id), ''))) +
+  theme_grey() +
+  geom_vline(xintercept=c(logFC_threshold,-logFC_threshold),
+             linetype = 'dashed') +
+  geom_hline(yintercept = -log10(Pthreshold), linetype = 'dashed') +
+  scale_color_manual(values = c('black','red'))
+
+# can save voc as a standard image if required 
+# this is the interactive package
+ggplotly(volc)
+
+# save it to html
+library(htmlwidgets)
+
+g_plotly<-ggplotly(volc)
+saveWidget(g_plotly, 'plots/vir1_low_vs_col_vir_high.GLM.edgeR.DE_results.html')
+
+
+
+df <- temp_data %>%
+  filter(Significant == 'Yes')
+
+print('number DE genes:')
+nrow(df)
+
+write.table(df, file='results_vir/vir1_low_vs_col_vir_high.GLM.edgeR.LOGFC1.6_FDR0.05.txt',
+            sep='	', quote=F, row.names=T,col.names = NA)
+
+
+```
+

@@ -1,0 +1,1 @@
+perl /homes/pthorpe001/apps/trinityrnaseq-v2.15.1//util/abundance_estimates_to_matrix.pl --est_method salmon --gene_trans_map  gene_trans_map --name_sample_by_basedir --out_prefix At /homes/pthorpe001/ggs_simpson/demeth_mutants_temperature_variable/data/processed_illumina/quant/*/quant.sf 

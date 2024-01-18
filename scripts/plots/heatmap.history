@@ -1,0 +1,76 @@
+   27  
+  952  conda activate R
+  953  conda activat python36
+  954  cd scratch/
+  955  cd DE_test/
+  956  ls
+  957  cd VIRc
+  958  ls
+  959  wc -l NLR_up_GOI
+  960  conda activate python36
+  961  python GOI_from_matrix.py -m At_araprot11_genes.isoform.TMM.EXPR.matrix --goi defence.transcript.GOI -o defence.gene.TMM
+  962  wc -l defence.transcript.GOI
+  963  wc -l defence.gene.TMM
+  964  nano samples_described.txt 
+  965  ls
+  966  python GOI_from_matrix.py -m At_araprot11_genes.isoform.TMM.EXPR.matrix --goi NLR_up_GOI -o NLR_up_GOI.TMM 
+  967  python GOI_from_matrix.py -m At_araprot11_genes.isoform.TMM.EXPR.matrix --goi flowering.transcript.GOI  -o flowering.gene.tmm 
+  968  conda activate R
+  969  ~/apps//trinityrnaseq-v2.15.1/Analysis/DifferentialExpression/PtR -s samples_described.txt -m defence.gene.TMM --save --heatmap --log2 --center_rows
+  970  ls  ~/apps//trinityrnaseq-v2.15.1/
+  971  /apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m NLR_up_GOI.TMM --save --heatmap --log2 --center_rows
+  972  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m NLR_up_GOI.TMM --save --heatmap --log2 --center_rows
+  973  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m defence.gene.TMM --save --heatmap --log2 --center_rows
+  974  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m flowering.transcript.GOI --save --heatmap --log2 --center_rows
+  975  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m flowering.gene.tmm  --save --heatmap --log2 --center_rows
+  976  ls
+  977  more ~/DE_GO_gene_models_order_TPM.sh 
+  978  trin_path=/mnt/shared/scratch/pthorpe/apps/trinityrnaseq-Trinity-v2.4.0/Analysis/DifferentialExpression/
+  979  v9=/mnt/shared/scratch/pthorpe/apps/trinityrnaseq-v2.9.0/Analysis/DifferentialExpression/
+  980  # run DE
+  981  pwd
+  982  cuwodi=/home/pthorpe/scratch/DE_test/VIRc
+  983  more ~/DE_GO_gene_models_order_TPM.sh 
+  984  C steps
+  985  ${trin_path}/PtR  --order_columns_by_samples_file  --matrix *.isoform.counts.matrix --samples ${cuwodi}/samples_described.txt --CPM --log2 --min_rowSums 10 --compare_replicates
+  986  wait
+  987  ${trin_path}/PtR  --order_columns_by_samples_file  --matrix *.isoform.counts.matrix --min_rowSums 2 --samples ${cuwodi}/samples_described.txt --log2 --CPM --sample_cor_matrix
+  988  wait
+  989  ${trin_path}/PtR --matrix *.isoform.counts.matrix --pdf_width 14 --pdf_height 14 -s ${cuwodi}/samples_described.txt --min_rowSums 10 --log2 --CPM --center_rows --prin_comp 3
+  990  ls
+  991  ${trin_path}/PtR  --order_columns_by_samples_file  --matrix *.isoform.counts.matrix --min_rowSums 2 --samples ${cuwodi}/samples_described.txt --log2 --CPM --sample_cor_matrix
+  992  ${trin_path}/PtR --matrix *.isoform.counts.matrix --pdf_width 14 --pdf_height 14 -s ${cuwodi}/samples_described.txt --min_rowSums 10 --log2 --CPM --center_rows --prin_comp 3
+  993  srsh]
+  994  srsh
+  995  srsh
+  996  conda activate R
+  997  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m defense.tmm --save --heatmap --log2 --center_rows --imgfmt pdf --img_width 20 --img_height 20
+  998  cd scratch/DE_test/
+  999  ls
+ 1000  cd at
+ 1001  ls
+ 1002  cd vir1_temp
+ 1003  ln -s ../At.gene.TMM.EXPR.matrix ./
+ 1004  ls
+ 1005  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --min_across_ALL_samples_gene_expr_val 10 --save --heatmap --log2 --center_rows --imgfmt pdf --img_width 20 --img_height 20
+ 1006  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --min_across_ALL_samples_gene_expr_val 10 --save --heatmap --log2 --center_rows --imgfmt svg --img_width 20 --img_height 20
+ 1007  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --min_across_ANY_samples_gene_expr_val 10 --save --heatmap --log2 --center_rows --imgfmt svg --img_width 20 --img_height 20
+ 1008  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --min_across_ANY_samples_gene_expr_val 10 --save --heatmap --log2 --center_rows --imgfmt png --img_width 20 --img_height 20
+ 1009  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --min_across_ANY_samples_gene_expr_val 10 --save --heatmap --log2 --center_rows --imgfmt pdf --img_width 20 --img_height 20
+ 1010  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --min_across_ANY_samples_gene_expr_val 50 --save --heatmap --log2 --center_rows --imgfmt pdf --img_width 8 --img_height 8
+ 1011  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --min_across_ANY_samples_gene_expr_val 50 --save --heatmap --log2 --center_rows --imgfmt svg --img_width 8 --img_height 8
+ 1012  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --min_rowSums 100 --save --heatmap --log2 --center_rows --imgfmt pdf --img_width 8 --img_height 8
+ 1013  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --min_rowSums 100 --save --heatmap --log2 --center_rows --imgfmt svg --img_width 8 --img_height 8
+ 1014  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --top_variable_genes 3000 --save --heatmap --log2 --center_rows --imgfmt svg --img_width 8 --img_height 8
+ 1015  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --top_variable_genes 2000 --save --heatmap --log2 --center_rows --imgfmt svg --img_width 8 --img_height 8
+ 1016  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --top_variable_genes 500 --save --heatmap --log2 --center_rows --imgfmt svg --img_width 8 --img_height 8
+ 1017  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --min_rowSums 50 --heatmap_scale_limits "-2,2" --save --heatmap --log2 --center_rows --imgfmt svg --img_width 8 --img_height 8
+ 1018  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --min_across_ANY_samples_gene_expr_val 50 --save --heatmap --log2 --center_rows --imgfmt svg --img_width 8 --img_height 8 --heatmap_scale_limits "-2,2"
+ 1019  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --min_across_ANY_samples_gene_expr_val 50 --save --heatmap --log2 --center_rows --imgfmt pdf --img_width 8 --img_height 8 --heatmap_scale_limits "-2,2"
+ 1020  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --min_across_ANY_samples_gene_expr_val 20 --save --heatmap --log2 --center_rows --imgfmt pdf --img_width 8 --img_height 8 --heatmap_scale_limits "-2,2"
+ 1021  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --heatmap_scale_limits "-2,2" --min_rowSums 20 --heatmap_scale_limits "-2,2" --save --heatmap --log2 --center_rows --imgfmt svg --img_width 8 --img_height 8
+ 1022  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --heatmap_scale_limits "-2,2" --min_rowSums 20 --heatmap_scale_limits "-2,2" --save --heatmap --log2 --center_rows --imgfmt pdf --img_width 8 --img_height 8
+ 1023  ~/apps/trinityrnaseq-v2.14.0/Analysis/DifferentialExpression/PtR -s samples_described.txt -m At.gene.TMM.EXPR.matrix --heatmap_scale_limits "-2,2" --min_rowSums 20 --heatmap_scale_limits "-2,2" --save --heatmap --log2 --center_rows --imgfmt svg --img_width 8 --img_height 8
+ 1024  ls
+ 1025  rm *.dat
+ 1026  history > heatmap.history
