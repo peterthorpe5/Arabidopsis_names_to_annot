@@ -293,20 +293,17 @@ def parse_file(infile, outfile, trans_to_gene,
             #    line = line.replace(subject, out_data)
             #    f_out.write(line)
             # write the header for the DE format
-            if line.strip().startswith("Row.names"):
-                if header_out < 1:
-                    if transcript != "":
-                        line = line.replace("Row.names", "transcript\tgene\tgeneID\tgene_class\tR_Gene\tacd6_mutants\tacd6_RTD")
-                    else:
-                        line = line.replace("Row.names", "gene\tgeneID\tgene_class\tR_Gene\tPTI_up\tPTI_down\tacd6_mutants")
-                    header = line.rstrip() + "\t" + "annot" + "\t" + "full_annot" + "\t" + "GO_terms" +"\n"
-                    f_out.write(header)
-                    header_out = header_out + 1
-                continue
+            if header_out < 1:
+                header1 =  "gene\tgeneID\tgene_class\tR_Gene\tPTI_up\tPTI_down\tacd6_mutants"
+                header = header1.rstrip() + "\t" + "annot" + "\t" + "full_annot" + "\t" + "GO_terms" +"\n"
+                f_out.write(header)
+                header_out = header_out + 1
+                
             
-            if "GLM.edgeR.DE" in infile or  "DE_results" in infile : # if you want txt or  "txt" in infile:
-                if not subject.startswith("A"):
-                    subject = data[1]
+            if "GLM.edgeR.DE" in infile or  "DE_results" in infile  or  "txt" in infile:
+
+                #if not subject.startswith("A"):
+                    #subject = data[1]
                 print(subject)
                 gene_id = trans_to_gene_id[subject]
                 func = tran_to_func[subject]
@@ -361,6 +358,13 @@ def parse_file(infile, outfile, trans_to_gene,
                     if not acd6_trans.startswith("a") or acd6_trans.startswith("C"):
                         acd6_trans = ""    
                     acd6 = acd6 + "\t" + acd6_trans
+                
+                if acd6 == "":
+                    acd6 = "NA"
+                if nbl_type == "":
+                    nbl_type = "NA"
+                if PTI_up == "":
+                    PTI_up = "NA"
 
 
                 out_data = "%s\t%s\t%s\t%s\t%s\t%s\t%s" % (subject, gene_id.rstrip(),  
@@ -371,9 +375,8 @@ def parse_file(infile, outfile, trans_to_gene,
                 if transcript != "":
                     out_data = transcript + "\t" + out_data
                 line = line.replace(subject, out_data).rstrip()
-                f_out.write(line.rstrip() + "\t" + func.rstrip() + 
-                            "\t" + full_funk.strip() + "\t" +
-                            go + "\n")
+                line = line.rstrip() + "\t" + func.rstrip() +  "\t" + full_funk.strip() + "\t" + go + "\n"
+                f_out.write(line)
     f_in.close()
     f_out.close()
     
