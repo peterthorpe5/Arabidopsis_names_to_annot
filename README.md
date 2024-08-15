@@ -17,14 +17,107 @@ Are, well, not enough to form any biological meaning.
     └── nlrs.txt  (from A Species-Wide Inventory of NLR Genes and Alleles in Arabidopsis thaliana )
 ```
 
+
+
+full list of files 
+
+```
+
+.
+├── LICENSE
+├── README.md
+├── converts_names.py
+├── converts_names_txt.py
+├── data
+│   ├── At_adc6_atRTD3.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.acd6-UP.subset
+│   ├── At_adc6_atRTD3.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.col0-UP.subset
+│   ├── At_adc6_genes.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.acd6-UP.subset
+│   ├── At_adc6_genes.isoform.counts.matrix.acd6_vs_col0.edgeR.DE_results.P1e-3_C2.col0-UP.subset
+│   ├── Go_final.txt.gz
+│   ├── PTI.txt
+│   ├── PTI_down.txt
+│   ├── PTI_up.txt
+│   ├── annot.txt
+│   ├── annot_modified.txt
+│   ├── check.py
+│   ├── flowering_time_genes.gz
+│   ├── gene.model.names
+│   ├── gene_description_20131231.txt.gz
+│   ├── headers.gz
+│   └── nlrs.txt
+├── scripts
+│   ├── At_GLM_R_DE_VIRUL_only.Rmd
+│   ├── DE_GO_gene_models_order_TPM.sh
+│   ├── GOI_from_matrix.py
+│   ├── GO_stuff_clustering
+│   │   ├── GOI_from_matrix.py
+│   │   ├── GO_CMDS.sh
+│   │   ├── RUN_GO_enrichment.sh
+│   │   ├── clustering.sh
+│   │   ├── defense.tmm.R
+│   │   ├── filter_GO.py
+│   │   ├── filter_expression.py
+│   │   └── run_command_in_subfolders.sh
+│   ├── __runGOseq.R
+│   ├── compare_ETI_PTI_with_our_results.py
+│   ├── compare_GOI.py
+│   ├── converts_names.py
+│   ├── converts_names_DEresults.py
+│   ├── count.matrix.sh
+│   ├── files_for_gene_GO
+│   │   ├── Go_final.txt
+│   │   ├── __runGOseq.R
+│   │   ├── gene_len_GO.txt
+│   │   ├── genes_feature_lengths.txt
+│   │   └── samples_described.txt
+│   ├── files_for_transcript_GO
+│   │   ├── At.isoform.counts.min10.matrix
+│   │   ├── Go_final.txt
+│   │   ├── gene_len_GO.txt
+│   │   ├── genes_feature_lengths.txt
+│   │   ├── go.sh
+│   │   └── samples_described.txt
+│   ├── filter_GO_data.py
+│   ├── filter_RNAseq.py
+│   ├── filter_expression.py
+│   ├── find_transposons.py
+│   ├── go.sh
+│   ├── plots
+│   │   ├── annot_modified.txt
+│   │   ├── annot_simple
+│   │   ├── gene_to_function
+│   │   ├── heatmap.history
+│   │   ├── scatterplot.R
+│   │   └── word_cloud.py
+│   ├── prepare_data_scripts
+│   │   ├── filter_RNAseq.py
+│   │   ├── generate_count.trix.sh
+│   │   ├── generate_transcript.go.sh
+│   │   ├── get_gene.len.py
+│   │   ├── mk_comparison.py
+│   │   ├── mk_comparison_virC.py
+│   │   ├── mk_gene_counts_matrix.TMM.py
+│   │   ├── mk_gene_counts_matrix.py
+│   │   └── prepare_GO.py
+│   ├── search_genes.sh
+│   ├── search_genes_all.sh
+│   ├── transposon.names
+│   └── upset.py
+└── tmp.py
+
+```
+
 The script will currently walk through the current directory and all sub directories 
 and look for files ending with" x.endswith("subset") or x.endswith("FDR_0.001") or x.endswith("DE_results"):
 
 This is currently how my files are set up. The is easy to change. 
 
 ## usage
-`python converts_names.py`  
 
+```bash
+python converts_names.py 
+
+```
 This will print the file name it is abusing and write the same filename with "_RENAMED" at the end. 
 
 Enjoy. 
@@ -51,3 +144,7 @@ AT2G04550	IBR5, DSPTP1E	other		mutant1_low	cond2	0.052375538	4.279841405	0.79088
 ```
 
 This script will not work in on all file and sometimes prints out the line twice. Use at your own caution. 
+
+## scripts folder 
+
+this is a load of scripts that should do what they do based on their title
